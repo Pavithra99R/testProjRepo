@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+    http://www.springframework.org/schema/beans/spring-beans.xsd
+    http://www.springframework.org/schema/context
+    http://www.springframework.org/schema/context/spring-context.xsd
+    http://www.springframework.org/schema/tx
+    http://www.springframework.org/schema/tx/spring-tx.xsd">
+
+	<!-- Loading annotated Beans -->
+	<context:component-scan base-package="com.lti"></context:component-scan>
+
+	<!-- DataSource configuration -->
+	<bean name="dataSource"
+		class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+		<property name="driverClassName" value="oracle.jdbc.driver.OracleDriver" />
+		<property name="url" value="jdbc:oracle:thin:@localhost:1521:OSE" />
+		<property name="username" value="scott" />
+		<property name="password" value="tiger" />
+	</bean>
+
+	<!-- ================= Spring/JPA Configuration ============== -->
+	<!-- This bean entry will create the EntityManagerFactory & EntityManager 
+		object for us Also we don't need a separate META-INF/persistence.xml file 
+		as the settings required for the ORM can be done within this bean entry itself -->
+	<bean id="myEmf"
+		class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean">
+		<property name="dataSource" ref="dataSource" /> <!-- DataSource reference configured above -->
+		<property name="packagesToScan" value="com.lti.entity" /> <!-- Location of @Entity classes -->
+		<property name="jpaVendorAdapter">
+			<bean class="org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter" />
+		</property>
+		<property name="jpaProperties">
+			<props>
+				<prop key="hibernate.hbm2ddl.auto">update</prop>
+				<prop key="hibernate.show_sql">true</prop>
+			</props>
+		</property>
+	</bean>
+
+	<!-- This bean entry will take of all the transaction management for us -->
+	<bean id="transactionManager" class="org.springframework.orm.jpa.JpaTransactionManager">
+		<property name="entityManagerFactory" ref="myEmf" />
+	</bean>
+
+	<!-- Required for @Transactional annotation to work -->
+	<tx:annotation-driven />
+
+</beans>
